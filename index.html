@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Spectrophotometer Simulator</title>
+<style>
+  /* ====== RESET & BASE ====== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e8ecf2;
+    color: #222;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
+    width: 100%;
+  }
+
+  /* ====== MAIN LAYOUT ====== */
+  .app-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  /* ====== TOP TITLE BAR ====== */
+  #title-bar {
+    background: linear-gradient(135deg, #ffd630, #ffe066);
+    border: 2px solid #d4aa00;
+    border-radius: 16px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  }
+  #title-bar h1 {
+    font-size: clamp(20px, 4vw, 32px);
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: #0a0a1a;
+  }
+  #title-bar .subtitle {
+    font-size: clamp(11px, 2vw, 16px);
+    color: #333;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  /* ====== CONTENT AREA ====== */
+  .content-area {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ====== 3D CANVAS BOX ====== */
+  .canvas-box {
+    flex: 1;
+    min-height: 400px;
+    background: #c8d0e0;
+    border: 2px solid #a0a8b8;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  #canvas3d {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 16px;
+  }
+
+  /* ====== RIGHT SIDEBAR ====== */
+  .sidebar {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* ====== CONTROL PANEL ====== */
+  #controls {
+    background: #fff;
+    border: 2px solid #c0c8d8;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.08);
+  }
+  .ctrl-section {
+    margin-bottom: 16px;
+  }
+  .ctrl-section:last-child { margin-bottom: 0; }
+  .ctrl-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #333;
+    margin-bottom: 6px;
+  }
+  select, input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    background: #f0f2f6;
+    border: 2px solid #bbc2d0;
+    border-radius: 10px;
+    color: #111;
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  select:focus, input:focus {
+    border-color: #3366cc;
+  }
+  select option { background: #fff; color: #111; }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .btn-start {
+    background: linear-gradient(135deg, #1b6e20, #2e9633);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(30,110,32,0.35);
+  }
+  .btn-start:hover { background: linear-gradient(135deg, #238a29, #3aad40); transform: translateY(-1px); }
+  .btn-start:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-reset {
+    background: #e8e8e8;
+    color: #444;
+    border: 2px solid #ccc;
+  }
+  .btn-reset:hover { background: #ddd; }
+
+  /* ====== DIGITAL DISPLAY ====== */
+  #display-panel {
+    background: #1a1a28;
+    border: 2px solid #444;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .display-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #888;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .display-readout {
+    background: #0a0c14;
+    border: 2px solid rgba(255,50,50,0.3);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .display-readout .value {
+    font-family: 'Courier New', monospace;
+    font-size: clamp(36px, 5vw, 52px);
+    font-weight: 700;
+    color: #ff2222;
+    text-shadow: 0 0 25px rgba(255,50,50,0.7), 0 0 50px rgba(255,50,50,0.3);
+    letter-spacing: 3px;
+  }
+  .display-readout .unit {
+    font-size: 11px;
+    color: #886666;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+  .display-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #888;
+    padding: 0 4px;
+  }
+  .display-info span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .display-info .val { color: #6af; font-weight: 700; font-size: 14px; }
+
+  .abs-bar-wrap {
+    margin-top: 12px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 6px;
+    height: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .abs-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4caf50, #ffcc00, #ff5500, #f44336);
+    border-radius: 6px;
+    transition: width 0.6s ease-out;
+  }
+
+  /* ====== READINGS LOG ====== */
+  #readings-log {
+    background: #fff;
+    border: 2px solid #c0c8d8;
+    border-radius: 16px;
+    padding: 14px 16px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.08);
+  }
+  #readings-log h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 800;
+  }
+  .reading-entry {
+    font-size: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    color: #333;
+    font-weight: 500;
+  }
+  .reading-entry .r-abs { color: #cc0000; font-weight: 800; font-family: 'Courier New', monospace; }
+  #readings-log::-webkit-scrollbar { width: 5px; }
+  #readings-log::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  /* ====== BOTTOM BAR ====== */
+  .bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  #status {
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    padding: 8px 18px;
+    border-radius: 24px;
+    border: 2px solid #c0c8d8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  #status .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #2e9633;
+    box-shadow: 0 0 8px rgba(46,150,51,0.6);
+  }
+  #status.running .dot { background: #ff9800; animation: pulse 0.8s infinite alternate; }
+  @keyframes pulse { from { opacity: 1; } to { opacity: 0.3; } }
+
+  #formula-overlay {
+    background: #fff;
+    border: 2px solid #3366cc;
+    border-radius: 12px;
+    padding: 10px 24px;
+    font-family: 'Courier New', monospace;
+    font-size: clamp(14px, 2.5vw, 20px);
+    font-weight: 800;
+    color: #0a1a4a;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.4s;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  }
+  #formula-overlay.visible { opacity: 1; }
+
+  /* ====== RESPONSIVE: TABLET ====== */
+  @media (max-width: 1024px) {
+    .sidebar { width: 260px; }
+  }
+
+  /* ====== RESPONSIVE: MOBILE ====== */
+  @media (max-width: 768px) {
+    .app-wrapper { padding: 8px; gap: 8px; }
+    .content-area {
+      flex-direction: column;
+    }
+    .sidebar {
+      width: 100%;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .sidebar > * { flex: 1 1 200px; min-width: 0; }
+    .canvas-box { min-height: 320px; }
+    #title-bar { padding: 10px 14px; }
+    #controls { padding: 14px; }
+    #display-panel { padding: 14px; }
+  }
+
+  /* ====== RESPONSIVE: SMALL MOBILE ====== */
+  @media (max-width: 480px) {
+    .sidebar {
+      flex-direction: column;
+    }
+    .sidebar > * { flex: 1 1 auto; }
+    .canvas-box { min-height: 260px; }
+    .btn { padding: 10px 0; font-size: 13px; }
+    select, input[type="number"] { font-size: 14px; padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <!-- ====== TITLE BAR ====== -->
+  <div id="title-bar">
+    <h1>Spectrophotometer</h1>
+    <span class="subtitle">Principle, Instrumentation &amp; Applications</span>
+  </div>
+
+  <!-- ====== CONTENT ====== -->
+  <div class="content-area">
+
+    <!-- ====== 3D CANVAS IN ROUNDED BOX ====== -->
+    <div class="canvas-box">
+      <canvas id="canvas3d"></canvas>
+    </div>
+
+    <!-- ====== SIDEBAR ====== -->
+    <div class="sidebar">
+
+      <!-- Controls -->
+      <div id="controls">
+        <div class="ctrl-section">
+          <label class="ctrl-label">Substance</label>
+          <select id="substance-select">
+            <option value="0">Glucose (transparent)</option>
+            <option value="1" selected>Copper Sulfate (blue)</option>
+            <option value="2">Potassium Permanganate (purple)</option>
+          </select>
+        </div>
+        <div class="ctrl-section">
+          <label class="ctrl-label">Concentration (c) mol/L</label>
+          <input type="number" id="conc-input" value="0.5" min="0.1" max="1.0" step="0.1">
+        </div>
+        <div class="ctrl-section btn-row">
+          <button class="btn btn-start" id="btn-start">Start Experiment</button>
+          <button class="btn btn-reset" id="btn-reset">Reset</button>
+        </div>
+      </div>
+
+      <!-- Digital Display -->
+      <div id="display-panel">
+        <div class="display-title">Digital Readout</div>
+        <div class="display-readout">
+          <div class="value" id="abs-value">0.000</div>
+          <div class="unit">ABSORBANCE (A)</div>
+        </div>
+        <div class="display-info">
+          <span>&#949; <em class="val" id="disp-epsilon">0.6</em></span>
+          <span>c <em class="val" id="disp-conc">0.5</em></span>
+          <span>l <em class="val">1</em></span>
+          <span>I/I&#8320; <em class="val" id="disp-transmit">--</em></span>
+        </div>
+        <div class="abs-bar-wrap">
+          <div class="abs-bar-fill" id="abs-bar"></div>
+        </div>
+      </div>
+
+      <!-- Readings Log -->
+      <div id="readings-log">
+        <h3>Experiment Log</h3>
+        <div id="log-entries"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====== BOTTOM BAR ====== -->
+  <div class="bottom-bar">
+    <div id="status"><span class="dot"></span> Ready</div>
+    <div id="formula-overlay">A = &#949; &times; c &times; l</div>
+  </div>
+
+</div>
+
+<!-- ====== THREE.JS ====== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+/* ============================================================
+   SUBSTANCE DATA
+   ============================================================ */
+const SUBSTANCES = [
+  { name: 'Glucose',                 epsilon: 0.2, color: [0.75, 0.70, 0.50], liquidAlpha: 0.3,  beamColor: [0.8, 0.7, 0.3] },
+  { name: 'Copper Sulfate',          epsilon: 0.6, color: [0.05, 0.25, 0.7],  liquidAlpha: 0.75, beamColor: [0.07, 0.35, 0.8] },
+  { name: 'Potassium Permanganate',  epsilon: 1.2, color: [0.4, 0.02, 0.4],   liquidAlpha: 0.85, beamColor: [0.45, 0.05, 0.45] }
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentSubstance = 1;
+let concentration = 0.5;
+let isAnimating = false;
+let animPhase = 0;
+let animTimer = 0;
+let displayTarget = 0;
+let displayCurrent = 0;
+let experimentCount = 0;
+
+/* ============================================================
+   DOM REFS
+   ============================================================ */
+const canvasBox    = document.querySelector('.canvas-box');
+const canvas       = document.getElementById('canvas3d');
+const selectEl     = document.getElementById('substance-select');
+const concInput    = document.getElementById('conc-input');
+const btnStart     = document.getElementById('btn-start');
+const btnReset     = document.getElementById('btn-reset');
+const absValueEl   = document.getElementById('abs-value');
+const dispEpsilon  = document.getElementById('disp-epsilon');
+const dispConc     = document.getElementById('disp-conc');
+const dispTransmit = document.getElementById('disp-transmit');
+const absBar       = document.getElementById('abs-bar');
+const formulaOv    = document.getElementById('formula-overlay');
+const statusEl     = document.getElementById('status');
+const logEntries   = document.getElementById('log-entries');
+
+/* ============================================================
+   BEER-LAMBERT CALCULATION
+   ============================================================ */
+function calcAbsorbance(substIdx, conc) {
+  return SUBSTANCES[substIdx].epsilon * conc * 1;
+}
+function calcTransmittance(absorbance) {
+  return Math.exp(-absorbance);
+}
+
+/* ============================================================
+   THREE.JS SCENE — BRIGHT LAB
+   ============================================================ */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xd0d8e8);
+
+const camera = new THREE.PerspectiveCamera(52, 2, 0.1, 200);
+camera.position.set(0, 9, 24);
+camera.lookAt(0, 1.5, 0);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.4;
+
+/* ====== LIGHTING ====== */
+scene.add(new THREE.AmbientLight(0xeeeeff, 0.55));
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.position.set(5, 15, 10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+dirLight.shadow.camera.near = 0.5;
+dirLight.shadow.camera.far = 40;
+dirLight.shadow.camera.left = -15;
+dirLight.shadow.camera.right = 15;
+dirLight.shadow.camera.top = 10;
+dirLight.shadow.camera.bottom = -5;
+scene.add(dirLight);
+
+scene.add(new THREE.DirectionalLight(0xffeedd, 0.5).translateX(-8).translateY(10));
+scene.add(new THREE.HemisphereLight(0xddeeff, 0x8899aa, 0.5));
+
+const fill1 = new THREE.PointLight(0xaaccff, 0.4, 40);
+fill1.position.set(-6, 6, 8);
+scene.add(fill1);
+const fill2 = new THREE.PointLight(0xffddaa, 0.3, 40);
+fill2.position.set(6, 4, -6);
+scene.add(fill2);
+
+/* ====== TABLE ====== */
+const table = new THREE.Mesh(
+  new THREE.BoxGeometry(32, 0.5, 9),
+  new THREE.MeshStandardMaterial({ color: 0x8090a8, roughness: 0.6, metalness: 0.05 })
+);
+table.position.set(0, -1.5, 0);
+table.receiveShadow = true;
+scene.add(table);
+
+const grid = new THREE.GridHelper(30, 30, 0x7888a0, 0x7888a0);
+grid.position.y = -1.24;
+scene.add(grid);
+
+/* ============================================================
+   COMPONENT POSITIONS
+   ============================================================ */
+const POS = {
+  lightSource: -10,
+  collimator:  -7,
+  prism:       -3.5,
+  slit:        -0.5,
+  cuvette:      3,
+  detector:     7,
+  display:      10
+};
+
+// Scale factor — makes all objects ~30% bigger
+const SC = 1.3;
+
+/* ============================================================
+   1. LIGHT SOURCE — DARK BASE + BRIGHT BULB
+   ============================================================ */
+const lightSourceGroup = new THREE.Group();
+lightSourceGroup.position.set(POS.lightSource, 0, 0);
+scene.add(lightSourceGroup);
+
+const lsBase = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.7 * SC, 0.85 * SC, 1.4 * SC, 16),
+  new THREE.MeshStandardMaterial({ color: 0x3a3a5a, roughness: 0.5, metalness: 0.4 })
+);
+lsBase.position.y = -0.3;
+lsBase.castShadow = true;
+lightSourceGroup.add(lsBase);
+
+const bulbMat = new THREE.MeshStandardMaterial({ color: 0xeebb44, emissive: 0xcc9900, emissiveIntensity: 2.5, transparent: true, opacity: 0.95 });
+const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.65 * SC, 24, 24), bulbMat);
+bulb.position.y = 0.7;
+lightSourceGroup.add(bulb);
+
+const bulbLight = new THREE.PointLight(0xddaa22, 2.0, 14);
+bulbLight.position.y = 0.7;
+lightSourceGroup.add(bulbLight);
+
+/* ============================================================
+   2. COLLIMATOR — DARKER FRAME
+   ============================================================ */
+const colGroup = new THREE.Group();
+colGroup.position.set(POS.collimator, 0, 0);
+scene.add(colGroup);
+
+const colFrame = new THREE.Mesh(
+  new THREE.TorusGeometry(1.1 * SC, 0.12 * SC, 12, 32),
+  new THREE.MeshStandardMaterial({ color: 0x4a5570, metalness: 0.6, roughness: 0.3 })
+);
+colFrame.rotation.y = Math.PI / 2;
+colFrame.castShadow = true;
+colGroup.add(colFrame);
+
+const colLens = new THREE.Mesh(
+  new THREE.SphereGeometry(1.0 * SC, 32, 32),
+  new THREE.MeshPhysicalMaterial({ color: 0x99bbee, transparent: true, opacity: 0.4, roughness: 0.05, transmission: 0.6, thickness: 0.5 })
+);
+colLens.scale.set(0.25, 1, 1);
+colGroup.add(colLens);
+
+colGroup.add(new THREE.Mesh(
+  new THREE.CylinderGeometry(0.1 * SC, 0.15 * SC, 1.4 * SC, 8),
+  new THREE.MeshStandardMaterial({ color: 0x3a4a60, metalness: 0.5 })
+).translateY(-1.7));
+
+/* ============================================================
+   3. PRISM — BIGGER, DARK EDGES
+   ============================================================ */
+const prismGroup = new THREE.Group();
+prismGroup.position.set(POS.prism, 0, 0);
+scene.add(prismGroup);
+
+const prismShape = new THREE.Shape();
+const ps = 1.4 * SC;
+prismShape.moveTo(0, ps);
+prismShape.lineTo(-ps * 0.866, -ps * 0.5);
+prismShape.lineTo(ps * 0.866, -ps * 0.5);
+prismShape.closePath();
+
+const prismGeo = new THREE.ExtrudeGeometry(prismShape, { depth: 1.0 * SC, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04 });
+const prismMesh = new THREE.Mesh(prismGeo, new THREE.MeshPhysicalMaterial({
+  color: 0xdde0f0, transparent: true, opacity: 0.55, roughness: 0.02, metalness: 0.05, transmission: 0.75, thickness: 2
+}));
+prismMesh.rotation.y = Math.PI / 2;
+prismMesh.position.y = -0.1;
+prismMesh.castShadow = true;
+prismGroup.add(prismMesh);
+
+const prismLine = new THREE.LineSegments(
+  new THREE.EdgesGeometry(prismGeo),
+  new THREE.LineBasicMaterial({ color: 0x444466 })
+);
+prismLine.rotation.y = Math.PI / 2;
+prismLine.position.y = -0.1;
+prismGroup.add(prismLine);
+
+prismGroup.add(new THREE.Mesh(
+  new THREE.CylinderGeometry(0.18 * SC, 0.22 * SC, 0.7 * SC, 8),
+  new THREE.MeshStandardMaterial({ color: 0x3a3a5a, metalness: 0.3 })
+).translateY(-1.55));
+
+prismGroup.add(new THREE.Mesh(
+  new THREE.CylinderGeometry(0.6 * SC, 0.6 * SC, 0.12 * SC, 16),
+  new THREE.MeshStandardMaterial({ color: 0x33336a, metalness: 0.2 })
+).translateY(-1.2));
+
+/* ============================================================
+   4. WAVELENGTH SLIT — BIGGER, DARKER
+   ============================================================ */
+const slitGroup = new THREE.Group();
+slitGroup.position.set(POS.slit, 0, 0);
+scene.add(slitGroup);
+
+slitGroup.add(new THREE.Mesh(
+  new THREE.BoxGeometry(0.22 * SC, 3.2 * SC, 2.4 * SC),
+  new THREE.MeshStandardMaterial({ color: 0x1a1a2a, roughness: 0.85 })
+));
+slitGroup.children[0].castShadow = true;
+
+slitGroup.add(new THREE.Mesh(
+  new THREE.BoxGeometry(0.26 * SC, 0.35 * SC, 0.6 * SC),
+  new THREE.MeshBasicMaterial({ color: 0x080810 })
+));
+
+/* ============================================================
+   5. CUVETTE — BIGGER, VISIBLE
+   ============================================================ */
+const cuvetteGroup = new THREE.Group();
+cuvetteGroup.position.set(POS.cuvette, 0, 0);
+scene.add(cuvetteGroup);
+
+const cuvOuterGeo = new THREE.BoxGeometry(1.2 * SC, 2.4 * SC, 1.2 * SC);
+const cuvOuter = new THREE.Mesh(cuvOuterGeo, new THREE.MeshPhysicalMaterial({
+  color: 0xdde8ff, transparent: true, opacity: 0.3, roughness: 0.02, transmission: 0.7, thickness: 0.6, side: THREE.DoubleSide
+}));
+cuvOuter.position.y = 0.15;
+cuvOuter.castShadow = true;
+cuvetteGroup.add(cuvOuter);
+
+cuvetteGroup.add(new THREE.LineSegments(
+  new THREE.EdgesGeometry(cuvOuterGeo),
+  new THREE.LineBasicMaterial({ color: 0x556688 })
+).translateY(0.15));
+
+const liquidMat = new THREE.MeshPhysicalMaterial({
+  color: 0x2288dd, transparent: true, opacity: 0.65, roughness: 0.1, side: THREE.DoubleSide
+});
+const liquid = new THREE.Mesh(new THREE.BoxGeometry(1.0 * SC, 1.9 * SC, 1.0 * SC), liquidMat);
+liquid.position.y = -0.05;
+cuvetteGroup.add(liquid);
+
+cuvetteGroup.add(new THREE.Mesh(
+  new THREE.BoxGeometry(1.5 * SC, 0.18 * SC, 1.5 * SC),
+  new THREE.MeshStandardMaterial({ color: 0x33336a, metalness: 0.2 })
+).translateY(-1.35));
+
+/* ============================================================
+   6. DETECTOR — BIGGER, DARKER
+   ============================================================ */
+const detGroup = new THREE.Group();
+detGroup.position.set(POS.detector, 0, 0);
+scene.add(detGroup);
+
+const detBody = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.7 * SC, 0.8 * SC, 2.0 * SC, 16),
+  new THREE.MeshStandardMaterial({ color: 0x3a3a5a, roughness: 0.5, metalness: 0.4 })
+);
+detBody.rotation.z = Math.PI / 2;
+detBody.castShadow = true;
+detGroup.add(detBody);
+
+detGroup.add(new THREE.Mesh(
+  new THREE.CircleGeometry(0.6 * SC, 24),
+  new THREE.MeshStandardMaterial({ color: 0x0e1a2e, roughness: 0.3, metalness: 0.7 })
+).translateX(-1.01 * SC).rotateY(-Math.PI / 2));
+
+detGroup.add(new THREE.Mesh(
+  new THREE.CylinderGeometry(0.12 * SC, 0.17 * SC, 1.2 * SC, 8),
+  new THREE.MeshStandardMaterial({ color: 0x3a4a60, metalness: 0.4 })
+).translateY(-1.55));
+
+/* ============================================================
+   7. DIGITAL DISPLAY 3D — BIGGER, DARKER
+   ============================================================ */
+const dispGroup = new THREE.Group();
+dispGroup.position.set(POS.display, 0.25, 0);
+scene.add(dispGroup);
+
+dispGroup.add(new THREE.Mesh(
+  new THREE.BoxGeometry(2.2 * SC, 1.5 * SC, 0.8 * SC),
+  new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.6, metalness: 0.3 })
+));
+dispGroup.children[0].castShadow = true;
+
+const dispScreenMat = new THREE.MeshBasicMaterial({ color: 0x220000 });
+const dispScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.6 * SC, 1.0 * SC), dispScreenMat);
+dispScreen.position.set(0, 0.05, 0.41 * SC);
+dispGroup.add(dispScreen);
+
+dispGroup.add(new THREE.Mesh(
+  new THREE.BoxGeometry(1.1 * SC, 0.7 * SC, 0.7 * SC),
+  new THREE.MeshStandardMaterial({ color: 0x22224a, metalness: 0.2 })
+).translateY(-1.35));
+
+// Wire
+const wireCurve = new THREE.CubicBezierCurve3(
+  new THREE.Vector3(POS.detector + 0.9, -0.6, 0),
+  new THREE.Vector3(POS.detector + 1.5, -1.8, 0),
+  new THREE.Vector3(POS.display - 1.5, -1.8, 0),
+  new THREE.Vector3(POS.display - 1.0, -0.6, 0)
+);
+scene.add(new THREE.Mesh(
+  new THREE.TubeGeometry(wireCurve, 20, 0.05, 6, false),
+  new THREE.MeshStandardMaterial({ color: 0x2a2a44 })
+));
+
+/* ============================================================
+   LIGHT BEAMS — THICK, BRIGHT
+   ============================================================ */
+function makeBeamPair(color, glowColor, radius, glowRadius, length, posX, posY) {
+  const core = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, length, 8),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0 })
+  );
+  core.rotation.z = Math.PI / 2;
+  core.position.set(posX, posY, 0);
+  scene.add(core);
+
+  const glow = new THREE.Mesh(
+    new THREE.CylinderGeometry(glowRadius, glowRadius, length, 8),
+    new THREE.MeshBasicMaterial({ color: glowColor, transparent: true, opacity: 0 })
+  );
+  glow.rotation.z = Math.PI / 2;
+  glow.position.set(posX, posY, 0);
+  scene.add(glow);
+
+  return { core, glow };
+}
+
+const beam1 = makeBeamPair(0xddaa22, 0xccaa44, 0.14, 0.30,
+  Math.abs(POS.collimator - POS.lightSource) - 1.2,
+  (POS.lightSource + POS.collimator) / 2, 0.4);
+
+const beam2 = makeBeamPair(0xddaa22, 0xccaa44, 0.12, 0.26,
+  Math.abs(POS.prism - POS.collimator) - 1.4,
+  (POS.collimator + POS.prism) / 2, 0.4);
+
+// Rainbow
+const rainbowColors = [0xcc1111, 0xcc6600, 0xccaa00, 0x119911, 0x1177cc, 0x2222bb, 0x7711cc];
+const rainbowBeams = [];
+const rainbowGlows = [];
+const fanSpread = 0.3;
+for (let i = 0; i < 7; i++) {
+  const len = Math.abs(POS.slit - POS.prism) - 1.0;
+  const yOff = (i - 3) * fanSpread;
+
+  const mat = new THREE.MeshBasicMaterial({ color: rainbowColors[i], transparent: true, opacity: 0 });
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, len, 6), mat);
+  mesh.rotation.z = Math.PI / 2;
+  mesh.position.set((POS.prism + POS.slit) / 2, 0.4 + yOff * 0.6, yOff * 0.15);
+  scene.add(mesh);
+  rainbowBeams.push(mesh);
+
+  const glowMat = new THREE.MeshBasicMaterial({ color: rainbowColors[i], transparent: true, opacity: 0 });
+  const glowMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, len, 6), glowMat);
+  glowMesh.rotation.z = Math.PI / 2;
+  glowMesh.position.copy(mesh.position);
+  scene.add(glowMesh);
+  rainbowGlows.push(glowMesh);
+}
+
+const beamSel = makeBeamPair(0x1166cc, 0x1166cc, 0.10, 0.22,
+  Math.abs(POS.cuvette - POS.slit) - 0.8,
+  (POS.slit + POS.cuvette) / 2, 0.4);
+
+const beamOut = makeBeamPair(0x1166cc, 0x1166cc, 0.10, 0.22,
+  Math.abs(POS.detector - POS.cuvette) - 1.2,
+  (POS.cuvette + POS.detector) / 2, 0.4);
+
+// Direction arrows
+function makeArrow(x, color) {
+  const a = new THREE.Mesh(
+    new THREE.ConeGeometry(0.18, 0.4, 8),
+    new THREE.MeshBasicMaterial({ color })
+  );
+  a.rotation.z = -Math.PI / 2;
+  a.position.set(x, 0.4, 0);
+  scene.add(a);
+}
+makeArrow(POS.lightSource + 1.3, 0x997700);
+makeArrow(POS.collimator + 1.3, 0x997700);
+makeArrow(POS.slit + 1.1, 0x224488);
+makeArrow(POS.cuvette + 1.3, 0x224488);
+
+/* ============================================================
+   LABELS — STAGGERED TOP/BOTTOM, NO OVERLAP
+   Labels alternate between HIGH (top row) and LOW (bottom row)
+   with thin vertical connector lines to each component.
+   ============================================================ */
+function makeLabel(text, compX, labelY, lineFromY) {
+  // --- High-res canvas for crisp large labels ---
+  const cvs = document.createElement('canvas');
+  cvs.width = 1024; cvs.height = 200;
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0, 0, 1024, 200);
+
+  // Measure text
+  ctx.font = 'bold 72px Segoe UI, sans-serif';
+  const tw = ctx.measureText(text).width;
+  const pillW = Math.min(980, tw + 80);
+  const pillX = (1024 - pillW) / 2;
+
+  // White pill bg with strong border
+  ctx.fillStyle = 'rgba(255,255,255,0.96)';
+  ctx.beginPath();
+  ctx.roundRect(pillX, 20, pillW, 155, 28);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  // Bold black text
+  ctx.font = 'bold 72px Segoe UI, sans-serif';
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 512, 100);
+
+  const tex = new THREE.CanvasTexture(cvs);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.position.set(compX, labelY, 0.5);
+  // 3x bigger sprite scale
+  const spriteW = Math.max(6, Math.min(10, text.length * 0.7));
+  sprite.scale.set(spriteW, 1.8, 1);
+  scene.add(sprite);
+
+  // --- Connector line ---
+  const lineLen = Math.abs(labelY - lineFromY);
+  const lineMid = (labelY + lineFromY) / 2;
+  const lineGeo = new THREE.CylinderGeometry(0.03, 0.03, lineLen, 4);
+  const lineMat = new THREE.MeshBasicMaterial({ color: 0x444466, transparent: true, opacity: 0.6 });
+  const line = new THREE.Mesh(lineGeo, lineMat);
+  line.position.set(compX, lineMid, 0);
+  scene.add(line);
+
+  // Dot at component
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0x444466 })
+  );
+  dot.position.set(compX, lineFromY, 0);
+  scene.add(dot);
+}
+
+// Stagger top/bottom rows — well separated, no overlap
+const TOP_Y = 5.5;
+const BOT_Y = 3.8;
+const COMP_TOP = 2.0;
+
+makeLabel('Light Source',      POS.lightSource,  TOP_Y,  COMP_TOP);
+makeLabel('Collimator',       POS.collimator,   BOT_Y,  COMP_TOP);
+makeLabel('Prism',             POS.prism,        TOP_Y,  COMP_TOP);
+makeLabel('Slit',              POS.slit,         BOT_Y,  COMP_TOP);
+makeLabel('Sample Cuvette',   POS.cuvette,      TOP_Y,  COMP_TOP);
+makeLabel('Detector',          POS.detector,     BOT_Y,  COMP_TOP);
+makeLabel('Display',           POS.display,      TOP_Y,  COMP_TOP);
+
+// Sub-labels — 2x bigger
+function makeSubLabel(text, compX, labelY) {
+  const cvs = document.createElement('canvas');
+  cvs.width = 512; cvs.height = 100;
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0, 0, 512, 100);
+  ctx.font = 'italic 44px Segoe UI, sans-serif';
+  ctx.fillStyle = 'rgba(30,30,80,0.75)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 256, 50);
+  const tex = new THREE.CanvasTexture(cvs);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  sprite.position.set(compX, labelY - 1.2, 0.5);
+  sprite.scale.set(5, 1.0, 1);
+  scene.add(sprite);
+}
+makeSubLabel('(Lens)',       POS.collimator,  BOT_Y);
+makeSubLabel('(Grating)',    POS.prism,       TOP_Y);
+makeSubLabel('(Photocell)',  POS.detector,    BOT_Y);
+
+// I₀ Iₜ labels — bigger
+function makeIOLabel(text, pos) {
+  const cvs = document.createElement('canvas');
+  cvs.width = 192; cvs.height = 96;
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0, 0, 192, 96);
+  ctx.font = 'bold 64px Courier New, monospace';
+  ctx.fillStyle = '#881100';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 96, 48);
+  const tex = new THREE.CanvasTexture(cvs);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  sprite.position.copy(pos);
+  sprite.scale.set(3, 1.2, 1);
+  scene.add(sprite);
+}
+makeIOLabel('I\u2080', new THREE.Vector3(POS.cuvette - 1.5, -2.2, 0));
+makeIOLabel('I\u209C', new THREE.Vector3(POS.cuvette + 1.5, -2.2, 0));
+
+/* ============================================================
+   UPDATE SUBSTANCE VISUALS
+   ============================================================ */
+function updateSubstanceVisuals() {
+  const sub = SUBSTANCES[currentSubstance];
+  liquidMat.color.setRGB(sub.color[0], sub.color[1], sub.color[2]);
+  liquidMat.opacity = sub.liquidAlpha + concentration * 0.2;
+
+  const bc = new THREE.Color(sub.beamColor[0], sub.beamColor[1], sub.beamColor[2]);
+  beamSel.core.material.color.copy(bc);
+  beamSel.glow.material.color.copy(bc);
+  beamOut.core.material.color.copy(bc);
+  beamOut.glow.material.color.copy(bc);
+
+  dispEpsilon.textContent = sub.epsilon.toFixed(1);
+  dispConc.textContent = concentration.toFixed(1);
+}
+
+/* ============================================================
+   RESET BEAMS
+   ============================================================ */
+function resetBeams() {
+  [beam1, beam2, beamSel, beamOut].forEach(b => {
+    b.core.material.opacity = 0;
+    b.glow.material.opacity = 0;
+  });
+  rainbowBeams.forEach(b => b.material.opacity = 0);
+  rainbowGlows.forEach(b => b.material.opacity = 0);
+}
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+const PHASE_DURATION = 700;
+
+function startExperiment() {
+  if (isAnimating) return;
+  concentration = Math.max(0.1, Math.min(1.0, parseFloat(concInput.value) || 0.5));
+  concInput.value = concentration.toFixed(1);
+  updateSubstanceVisuals();
+  resetBeams();
+
+  isAnimating = true;
+  animPhase = 1;
+  animTimer = performance.now();
+  displayTarget = calcAbsorbance(currentSubstance, concentration);
+  displayCurrent = 0;
+
+  btnStart.disabled = true;
+  statusEl.className = 'running';
+  statusEl.innerHTML = '<span class="dot"></span> Running experiment...';
+  formulaOv.classList.add('visible');
+}
+
+function resetExperiment() {
+  isAnimating = false;
+  animPhase = 0;
+  displayCurrent = 0;
+  displayTarget = 0;
+  absValueEl.textContent = '0.000';
+  dispTransmit.textContent = '--';
+  absBar.style.width = '0%';
+  resetBeams();
+  bulbMat.emissiveIntensity = 2.5;
+  bulbLight.intensity = 2.0;
+  dispScreenMat.color.setHex(0x220000);
+  btnStart.disabled = false;
+  statusEl.className = '';
+  statusEl.innerHTML = '<span class="dot"></span> Ready';
+  formulaOv.classList.remove('visible');
+}
+
+function setBeamOpacity(bp, core, glow) {
+  bp.core.material.opacity = core;
+  bp.glow.material.opacity = glow;
+}
+
+function updateAnimation(now) {
+  if (!isAnimating) return;
+  const elapsed = now - animTimer;
+  const p = Math.min(elapsed / PHASE_DURATION, 1);
+
+  switch (animPhase) {
+    case 1:
+      bulbMat.emissiveIntensity = 2.5 + p * 3;
+      bulbLight.intensity = 2.0 + p * 2.5;
+      setBeamOpacity(beam1, p, p * 0.3);
+      if (p >= 1) { animPhase = 2; animTimer = now; }
+      break;
+    case 2:
+      setBeamOpacity(beam2, p, p * 0.3);
+      if (p >= 1) { animPhase = 3; animTimer = now; }
+      break;
+    case 3:
+      rainbowBeams.forEach((b, i) => {
+        const d = i * 0.06;
+        const t = Math.max(0, Math.min(1, (p - d) / (1 - d)));
+        b.material.opacity = t;
+        rainbowGlows[i].material.opacity = t * 0.4;
+      });
+      if (p >= 1) { animPhase = 4; animTimer = now; }
+      break;
+    case 4:
+      rainbowBeams.forEach((b, i) => {
+        b.material.opacity = Math.max(0.05, 1.0 - p * 0.9);
+        rainbowGlows[i].material.opacity = Math.max(0, 0.4 - p * 0.4);
+      });
+      setBeamOpacity(beamSel, p, p * 0.3);
+      if (p >= 1) { animPhase = 5; animTimer = now; }
+      break;
+    case 5: {
+      const tr = calcTransmittance(displayTarget);
+      setBeamOpacity(beamOut, p * tr, p * 0.3 * tr);
+      liquidMat.emissive = liquidMat.color.clone().multiplyScalar(p * 0.2);
+      if (p >= 1) { animPhase = 6; animTimer = now; }
+      break;
+    }
+    case 6: {
+      const tr = calcTransmittance(displayTarget);
+      displayCurrent = p * displayTarget;
+      absValueEl.textContent = displayCurrent.toFixed(3);
+      dispTransmit.textContent = (tr * 100).toFixed(1) + '%';
+      absBar.style.width = Math.min(100, (displayCurrent / 1.2) * 100).toFixed(1) + '%';
+      dispScreenMat.color.setRGB(Math.floor(p * 0x66) / 255, 0, 0);
+      if (p >= 1) { animPhase = 7; animTimer = now; }
+      break;
+    }
+    case 7:
+      absValueEl.textContent = displayTarget.toFixed(3);
+      dispScreenMat.color.setHex(0x440000);
+      isAnimating = false;
+      animPhase = 0;
+      btnStart.disabled = false;
+      statusEl.className = '';
+      statusEl.innerHTML = '<span class="dot"></span> Complete';
+      experimentCount++;
+      addLogEntry();
+      setTimeout(() => formulaOv.classList.remove('visible'), 2000);
+      break;
+  }
+}
+
+/* ============================================================
+   LOG
+   ============================================================ */
+function addLogEntry() {
+  const sub = SUBSTANCES[currentSubstance];
+  const entry = document.createElement('div');
+  entry.className = 'reading-entry';
+  entry.innerHTML = `<span>#${experimentCount} ${sub.name.split(' ')[0]} c=${concentration.toFixed(1)}</span><span class="r-abs">A=${displayTarget.toFixed(3)}</span>`;
+  logEntries.prepend(entry);
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+selectEl.addEventListener('change', () => { currentSubstance = parseInt(selectEl.value); updateSubstanceVisuals(); });
+concInput.addEventListener('input', () => { const v = parseFloat(concInput.value); if (!isNaN(v)) { concentration = Math.max(0.1, Math.min(1.0, v)); updateSubstanceVisuals(); } });
+btnStart.addEventListener('click', startExperiment);
+btnReset.addEventListener('click', resetExperiment);
+
+/* ============================================================
+   RESPONSIVE RESIZE
+   ============================================================ */
+function handleResize() {
+  const box = canvasBox;
+  const w = box.clientWidth;
+  const h = box.clientHeight;
+  if (w === 0 || h === 0) return;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+
+window.addEventListener('resize', handleResize);
+new ResizeObserver(handleResize).observe(canvasBox);
+
+/* ============================================================
+   RENDER LOOP
+   ============================================================ */
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  camera.position.x = Math.sin(t * 0.12) * 0.4;
+  camera.position.y = 9 + Math.sin(t * 0.08) * 0.2;
+  camera.lookAt(0, 1.5, 0);
+
+  if (!isAnimating) {
+    bulbMat.emissiveIntensity = 2.5 + Math.sin(t * 3) * 0.3;
+    bulbLight.intensity = 2.0 + Math.sin(t * 3) * 0.2;
+  }
+
+  prismMesh.rotation.z = Math.sin(t * 0.5) * 0.02;
+  prismLine.rotation.z = prismMesh.rotation.z;
+
+  updateAnimation(performance.now());
+  renderer.render(scene, camera);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+updateSubstanceVisuals();
+// Initial resize after DOM renders
+requestAnimationFrame(() => { handleResize(); animate(); });
+</script>
+</body>
+</html>

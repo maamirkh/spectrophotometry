@@ -298,12 +298,19 @@
   }
   #formula-overlay.visible { opacity: 1; }
 
-  /* ====== RESPONSIVE: TABLET ====== */
+  /* ====== RESPONSIVE: LARGE DESKTOP (1440px+) ====== */
+  @media (min-width: 1440px) {
+    .app-wrapper { max-width: 1800px; margin: 0 auto; padding: 16px; gap: 14px; }
+    .sidebar { width: 340px; }
+    .canvas-box { min-height: 500px; }
+  }
+
+  /* ====== RESPONSIVE: TABLET LANDSCAPE (1024px) ====== */
   @media (max-width: 1024px) {
     .sidebar { width: 260px; }
   }
 
-  /* ====== RESPONSIVE: MOBILE ====== */
+  /* ====== RESPONSIVE: TABLET PORTRAIT (768px) ====== */
   @media (max-width: 768px) {
     .app-wrapper { padding: 8px; gap: 8px; }
     .content-area {
@@ -315,21 +322,91 @@
       flex-wrap: wrap;
     }
     .sidebar > * { flex: 1 1 200px; min-width: 0; }
-    .canvas-box { min-height: 320px; }
+    .canvas-box { min-height: 300px; }
     #title-bar { padding: 10px 14px; }
     #controls { padding: 14px; }
     #display-panel { padding: 14px; }
+    #readings-log { max-height: 160px; }
   }
 
-  /* ====== RESPONSIVE: SMALL MOBILE ====== */
+  /* ====== RESPONSIVE: SMALL TABLET / LARGE PHONE (600px) ====== */
+  @media (max-width: 600px) {
+    .sidebar > * { flex: 1 1 100%; }
+    .canvas-box { min-height: 260px; }
+    .bottom-bar { flex-direction: column; align-items: stretch; }
+    #status { justify-content: center; }
+    #formula-overlay { text-align: center; }
+  }
+
+  /* ====== RESPONSIVE: MOBILE (480px) ====== */
   @media (max-width: 480px) {
+    .app-wrapper { padding: 6px; gap: 6px; }
     .sidebar {
       flex-direction: column;
     }
     .sidebar > * { flex: 1 1 auto; }
-    .canvas-box { min-height: 260px; }
+    .canvas-box { min-height: 220px; }
+    #title-bar { padding: 8px 10px; gap: 6px; border-radius: 12px; }
     .btn { padding: 10px 0; font-size: 13px; }
     select, input[type="number"] { font-size: 14px; padding: 8px 10px; }
+    #controls { padding: 12px; border-radius: 12px; }
+    #display-panel { padding: 12px; border-radius: 12px; }
+    .display-readout { padding: 12px; }
+    .display-readout .value { letter-spacing: 2px; }
+    #readings-log { padding: 10px 12px; border-radius: 12px; max-height: 140px; }
+    .canvas-box { border-radius: 12px; }
+    #canvas3d { border-radius: 10px; }
+  }
+
+  /* ====== RESPONSIVE: VERY SMALL MOBILE (360px) ====== */
+  @media (max-width: 360px) {
+    .app-wrapper { padding: 4px; gap: 4px; }
+    #title-bar { padding: 6px 8px; gap: 4px; border-radius: 10px; }
+    #title-bar h1 { letter-spacing: 0.5px; }
+    .canvas-box { min-height: 180px; border-radius: 10px; }
+    #canvas3d { border-radius: 8px; }
+    #controls { padding: 10px; border-radius: 10px; }
+    .ctrl-section { margin-bottom: 10px; }
+    .ctrl-label { font-size: 10px; }
+    select, input[type="number"] { font-size: 13px; padding: 7px 8px; }
+    .btn { font-size: 12px; padding: 9px 0; }
+    #display-panel { padding: 10px; border-radius: 10px; }
+    .display-readout .value { font-size: 28px; letter-spacing: 1px; }
+    .display-readout .unit { font-size: 9px; }
+    .display-title { font-size: 9px; }
+    .display-info .val { font-size: 12px; }
+    .display-info { font-size: 9px; }
+    #readings-log { padding: 8px 10px; border-radius: 10px; max-height: 120px; }
+    #readings-log h3 { font-size: 10px; }
+    .reading-entry { font-size: 10px; }
+    #status { font-size: 11px; padding: 6px 12px; }
+    #formula-overlay { font-size: 12px; padding: 6px 12px; }
+  }
+
+  /* ====== RESPONSIVE: LANDSCAPE PHONES ====== */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .content-area { flex-direction: row; }
+    .sidebar {
+      width: 230px;
+      flex-direction: column;
+      overflow-y: auto;
+      max-height: calc(100vh - 70px);
+    }
+    .sidebar > * { flex: 0 0 auto; }
+    .canvas-box { min-height: unset; }
+    #title-bar { padding: 4px 12px; }
+    #title-bar h1 { font-size: 16px; }
+    #title-bar .subtitle { font-size: 10px; }
+    .app-wrapper { padding: 4px; gap: 4px; }
+    #controls { padding: 8px; }
+    .ctrl-section { margin-bottom: 8px; }
+    select, input[type="number"] { padding: 6px 8px; font-size: 13px; }
+    .btn { padding: 7px 0; font-size: 12px; }
+    #display-panel { padding: 8px 10px; }
+    .display-readout { padding: 8px; margin-bottom: 6px; }
+    .display-readout .value { font-size: 28px; }
+    .display-title { font-size: 9px; margin-bottom: 4px; }
+    #readings-log { max-height: 80px; padding: 6px 8px; }
   }
 </style>
 </head>

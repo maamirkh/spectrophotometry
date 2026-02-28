@@ -358,6 +358,91 @@
     #canvas3d { border-radius: 10px; }
   }
 
+  /* ====== THEORY SECTION ====== */
+  .theory-section {
+    background: #fff;
+    border: 2px solid #c0c8d8;
+    border-radius: 16px;
+    padding: 32px 36px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.08);
+    margin-top: 4px;
+  }
+  .theory-section h2 {
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 900;
+    color: #0a1a4a;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    border-bottom: 3px solid #ffd630;
+    padding-bottom: 10px;
+    display: inline-block;
+  }
+  .theory-section h3 {
+    font-size: clamp(16px, 2.5vw, 20px);
+    font-weight: 800;
+    color: #1a2a5a;
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+  .theory-section p {
+    font-size: clamp(14px, 1.8vw, 16px);
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 14px;
+    text-align: justify;
+  }
+  .theory-section ul {
+    padding-left: 24px;
+    margin-bottom: 14px;
+  }
+  .theory-section ul li {
+    font-size: clamp(14px, 1.8vw, 16px);
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 6px;
+  }
+  .theory-section .highlight-box {
+    background: linear-gradient(135deg, #f8f9ff, #eef2ff);
+    border-left: 4px solid #3366cc;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 15px;
+    color: #1a2a5a;
+    font-weight: 600;
+  }
+  .theory-section .formula-box {
+    background: #0a0c14;
+    border: 2px solid rgba(255,50,50,0.3);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 500px;
+    font-family: 'Courier New', monospace;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 700;
+    color: #ff4444;
+    text-shadow: 0 0 20px rgba(255,50,50,0.5);
+    letter-spacing: 2px;
+  }
+  .theory-columns {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+  }
+  .theory-col {
+    flex: 1;
+  }
+
+  @media (max-width: 768px) {
+    .theory-section { padding: 20px 18px; }
+    .theory-columns { flex-direction: column; gap: 0; }
+  }
+  @media (max-width: 480px) {
+    .theory-section { padding: 16px 14px; border-radius: 12px; }
+  }
+
   /* ====== RESPONSIVE: VERY SMALL MOBILE (360px) ====== */
   @media (max-width: 360px) {
     .app-wrapper { padding: 4px; gap: 4px; }
@@ -482,6 +567,55 @@
   <div class="bottom-bar">
     <div id="status"><span class="dot"></span> Ready</div>
     <div id="formula-overlay">A = &#949; &times; c &times; l</div>
+  </div>
+
+  <!-- ====== THEORY SECTION ====== -->
+  <div class="theory-section">
+
+    <h2>What is Spectrophotometry?</h2>
+    <p>Spectrophotometry is a quantitative analytical technique used to measure how much light a chemical substance absorbs by passing a beam of light through the sample solution. It works on the principle that every chemical compound absorbs, transmits, or reflects light over a specific range of wavelengths. By measuring the intensity of light before and after it passes through the sample, the concentration of the substance can be determined with high accuracy.</p>
+
+    <p>The instrument used for this purpose is called a <strong>spectrophotometer</strong>. It is widely used in chemistry, biochemistry, molecular biology, physics, and clinical laboratories. The basic function of a spectrophotometer is to measure the absorbance or transmittance of a solution at a selected wavelength of light.</p>
+
+    <div class="formula-box">A = &#949; &times; c &times; l</div>
+
+    <div class="highlight-box">
+      The above equation is known as the <strong>Beer-Lambert Law</strong>, which states that the absorbance of a solution is directly proportional to the concentration of the absorbing species and the path length of the light through the solution.
+    </div>
+
+    <h3>Principle of Spectrophotometry</h3>
+    <p>The principle of spectrophotometry is based on the interaction of electromagnetic radiation with matter. When a beam of monochromatic light (light of a single wavelength) passes through a solution containing an absorbing substance, a portion of the light is absorbed by the solution. The amount of light absorbed depends on the nature of the substance, its concentration, and the distance the light travels through the solution (path length).</p>
+
+    <p>According to the Beer-Lambert Law, the absorbance (A) is the product of the molar absorptivity (&#949;), the concentration (c) in mol/L, and the path length (l) in cm. The transmittance (T) is defined as the ratio of the intensity of transmitted light (I) to the intensity of incident light (I&#8320;), expressed as T = I/I&#8320;. The relationship between absorbance and transmittance is given by A = -log(T).</p>
+
+    <h3>Components of a Spectrophotometer</h3>
+    <div class="theory-columns">
+      <div class="theory-col">
+        <ul>
+          <li><strong>Light Source:</strong> Provides a stable beam of light across a range of wavelengths. A tungsten-halogen lamp is used for visible light (380-750 nm), while a deuterium lamp is used for ultraviolet light (190-380 nm).</li>
+          <li><strong>Collimator (Lens):</strong> Focuses and aligns the light beam into parallel rays so that it passes uniformly through the monochromator and sample.</li>
+          <li><strong>Monochromator (Prism/Grating):</strong> Disperses the white light into its component wavelengths and allows only a narrow band of selected wavelength to pass through to the sample.</li>
+          <li><strong>Wavelength Selector (Slit):</strong> A narrow slit that isolates a specific wavelength from the dispersed spectrum, ensuring that only monochromatic light reaches the sample.</li>
+        </ul>
+      </div>
+      <div class="theory-col">
+        <ul>
+          <li><strong>Sample Cuvette:</strong> A transparent container (usually made of glass or quartz) that holds the sample solution. The cuvette has a known path length, typically 1 cm, and is placed in the light path.</li>
+          <li><strong>Detector (Photocell):</strong> Converts the transmitted light into an electrical signal. The detector measures the intensity of light that passes through the sample and generates a proportional voltage.</li>
+          <li><strong>Digital Display/Readout:</strong> Displays the measured values of absorbance or transmittance. Modern spectrophotometers are connected to computers for data analysis and storage.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Applications of Spectrophotometry</h3>
+    <p>Spectrophotometry has a vast range of applications across multiple scientific disciplines. In clinical laboratories, it is used for blood analysis, enzyme assays, and drug concentration monitoring. In environmental science, it helps in detecting pollutants and measuring water quality parameters. In the food industry, it is used to determine the concentration of additives, preservatives, and nutrients. In pharmaceutical research, it plays a critical role in drug formulation and quality control.</p>
+
+    <p>Additionally, spectrophotometry is essential in molecular biology for measuring DNA, RNA, and protein concentrations. The absorbance at 260 nm is used for nucleic acids, while 280 nm is used for proteins. The ratio of A260/A280 provides an estimate of the purity of the nucleic acid sample. In industrial chemistry, spectrophotometry is used for quality assurance, color matching, and process monitoring.</p>
+
+    <div class="highlight-box">
+      <strong>Key Takeaway:</strong> Spectrophotometry is a fundamental analytical technique that enables precise and reproducible measurements of substance concentrations. Its reliance on the Beer-Lambert Law provides a straightforward mathematical framework for quantitative analysis, making it indispensable in both research and applied sciences.
+    </div>
+
   </div>
 
 </div>
